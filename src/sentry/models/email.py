@@ -62,4 +62,4 @@ class Email(Model):
             template='sentry/emails/confirm_email.txt',
             context=context,
         )
-        msg.send_async([self.user.email])
+        msg.send_async([self.email])

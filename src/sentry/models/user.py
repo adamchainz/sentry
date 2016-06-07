@@ -72,8 +72,11 @@ class User(BaseModel, AbstractBaseUser):
         if not self.username:
             self.username = self.email
         user = super(User, self).save(*args, **kwargs)
-        if not self.emails.filter(email=self.email).exists():
-            self.emails.create(email=self.email, user=self)
+        try:
+            with transaction.atomic():
+                self.emails.create(email=self.email, user=self)
+        except IntegrityError:
+            pass
         return user
 
     def has_perm(self, perm_name):
