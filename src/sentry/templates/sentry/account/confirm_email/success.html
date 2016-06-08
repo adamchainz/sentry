@@ -6,7 +6,7 @@
 {% block title %}{% trans "Confirm Email" %} | {{ block.super }}{% endblock %}
 
 {% block auth_main %}
-    <h2>{% trans "Confirm Email" %}</h2>
+    <h2>{% trans "Confirmation successful" %}</h2>
     <p>{% trans "Thanks for confirming your email." %}</p>
     <a class="btn btn-primary" href="{% url 'sentry-login' %}">{% trans "Sign in" %}</a>
 {% endblock %}

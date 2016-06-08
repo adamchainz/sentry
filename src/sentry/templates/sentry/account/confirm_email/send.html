@@ -6,12 +6,13 @@
 {% block title %}{% trans "Confirm Email" %} | {{ block.super }}{% endblock %}
 
 {% block auth_main %}
-    <h2>{% trans "Confirm Email" %}</h2>
 
     {% if has_unverified_emails %}
-        <p>{% trans "A verification email has been sent to " %}{{ request.user.email }}.</p>
+        <h2>{% trans "Confirmation sent" %}</h2>
+        <p>{% trans "A verification email has been sent to " %}<strong>{{ request.user.email }}</strong>.</p>
     {% else %}
-        <p>{% trans "Your email " %}({{ request.user.email }})
+        <h2>{% trans "Already confirmed" %}</h2>
+        <p>{% trans "Your email " %}(<strong>{{ request.user.email }}</strong>)
            {% trans " has already been verified." %}</p>
     {% endif %}
 {% endblock %}
