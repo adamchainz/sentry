@@ -32,12 +32,18 @@ const Frame = React.createClass({
     })
   ],
 
+  getDefaultProps() {
+    return {
+      isExpanded: false
+    };
+  },
+
   getInitialState() {
     // isExpanded can be initialized to true via parent component;
     // data synchronization is not important
     // https://facebook.github.io/react/tips/props-in-getInitialState-as-anti-pattern.html
     return {
-      isExpanded: defined(this.props.isExpanded) ? this.props.isExpanded : false
+      isExpanded: this.props.isExpanded
     };
   },
 
@@ -52,18 +58,13 @@ const Frame = React.createClass({
     return defined(this.props.data.context) && this.props.data.context.length;
   },
 
-  hasExtendedSource() {
-    return this.hasContextSource() && this.props.data.context.length > 1;
-  },
-
   hasContextVars() {
     return !objectIsEmpty(this.props.data.vars);
   },
 
   isExpandable() {
-    return this.hasExtendedSource() || this.hasContextVars();
+    return this.hasContextSource() || this.hasContextVars();
   },
-
 
   renderOriginalSourceInfo() {
     let data = this.props.data;
@@ -133,33 +134,7 @@ const Frame = React.createClass({
       );
     }
 
-    if (data.inApp) {
-      title.push(<span key="in-app"><span className="divider"/>{t('application')}</span>);
-    }
     return title;
-  },
-
-  renderContextLine(line, activeLineNo) {
-    let liClassName = 'expandable';
-    if (line[0] === activeLineNo) {
-      liClassName += ' active';
-    }
-
-    let lineWs;
-    let lineCode;
-    if (defined(line[1]) && line[1].match) {
-      [, lineWs, lineCode] = line[1].match(/^(\s*)(.*?)$/m);
-    } else {
-      lineWs = '';
-      lineCode = '';
-    }
-    return (
-      <li className={liClassName} key={line[0]}>
-        <span className="ws">{
-        lineWs}</span><span className="contextline">{lineCode
-        }</span>
-      </li>
-    );
   },
 
   renderContext() {
@@ -191,7 +166,7 @@ const Frame = React.createClass({
           }
 
           {data.context && contextLines.map((line, index) => {
-            return <ContextLine key={index} line={line} isActive={data.lineNo === line[0]}/>;
+            return <ContextLine key={index} line={line} isActive={data.lineNo === line[0]} />;
           })}
 
           {hasContextVars &&
@@ -219,7 +194,7 @@ const Frame = React.createClass({
 
   renderDefaultLine() {
     return (
-      <p>
+      <p onClick={this.toggleContext}>
         {this.renderDefaultTitle()}
         {this.renderExpander()}
       </p>
@@ -271,6 +246,8 @@ const Frame = React.createClass({
 
     let className = classNames({
       'frame': true,
+      'is-expandable': this.isExpandable(),
+      'expanded': this.state.isExpanded,
       'system-frame': !data.inApp,
       'frame-errors': data.errors,
       'leads-to-app': !data.inApp && this.props.nextFrameInApp
