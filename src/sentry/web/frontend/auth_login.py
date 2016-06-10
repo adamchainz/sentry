@@ -12,7 +12,6 @@ from sentry import features
 from sentry.constants import WARN_SESSION_EXPIRED
 from sentry.models import AuthProvider, Organization, OrganizationStatus
 from sentry.web.forms.accounts import AuthenticationForm, RegistrationForm
-from sentry.web.frontend.accounts import send_confirm_emails
 from sentry.web.frontend.base import BaseView
 from sentry.utils import auth
 
@@ -72,7 +71,7 @@ class AuthLoginView(BaseView):
 
         if can_register and register_form.is_valid():
             user = register_form.save()
-            send_confirm_emails(user)
+            user.send_confirm_emails(is_new_user=True)
 
             # HACK: grab whatever the first backend is and assume it works
             user.backend = settings.AUTHENTICATION_BACKENDS[0]

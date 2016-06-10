@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from exam import fixture
 from social_auth.models import UserSocialAuth
 
-from sentry.models import Email, LostPasswordHash, ProjectStatus, User, UserOption
+from sentry.models import UserEmail, LostPasswordHash, ProjectStatus, User, UserOption
 from sentry.testutils import TestCase
 
 
@@ -233,7 +233,7 @@ class RecoverPasswordConfirmTest(TestCase):
 
 
 class ConfirmEmailSendTest(TestCase):
-    @mock.patch('sentry.models.Email.send_confirm_email')
+    @mock.patch('sentry.models.User.send_confirm_emails')
     def test_valid(self, send_confirm_email):
         self.login_as(self.user)
         resp = self.client.get(reverse('sentry-account-confirm-email-send'))
@@ -250,7 +250,7 @@ class ConfirmEmailTest(TestCase):
                                        args=[self.user.id, '5b1f2f266efa03b721cc9ea0d4742c5e']))
         assert resp.status_code == 200
         self.assertTemplateUsed(resp, 'sentry/account/confirm_email/failure.html')
-        email = Email.objects.get(email=self.user.email)
+        email = UserEmail.objects.get(email=self.user.email)
         assert not email.is_verified
 
     def test_valid(self):

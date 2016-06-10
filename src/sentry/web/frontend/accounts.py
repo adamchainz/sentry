@@ -21,7 +21,7 @@ from django.utils import timezone
 from sudo.decorators import sudo_required
 
 from sentry.models import (
-    Email, LostPasswordHash, Project, ProjectStatus, UserOption, Authenticator)
+    UserEmail, LostPasswordHash, Project, ProjectStatus, UserOption, Authenticator)
 from sentry.plugins import plugins
 from sentry.web.decorators import login_required, signed_auth_required
 from sentry.web.forms.accounts import (
@@ -31,11 +31,6 @@ from sentry.web.forms.accounts import (
 from sentry.web.helpers import render_to_response
 from sentry.utils.auth import get_auth_providers, get_login_redirect
 from sentry.utils.safe import safe_execute
-
-
-def send_confirm_emails(user):
-    for email in user.emails.filter(is_verified=False):
-        email.send_confirm_email()
 
 
 @login_required
@@ -121,7 +116,7 @@ def recover_confirm(request, user_id, hash):
 def start_confirm_email(request):
     has_unverified_emails = request.user.has_unverified_emails()
     if has_unverified_emails:
-        send_confirm_emails(request.user)
+        request.user.send_confirm_emails()
     return render_to_response('sentry/account/confirm_email/send.html',
                               {'has_unverified_emails': has_unverified_emails},
                               request)
@@ -129,10 +124,10 @@ def start_confirm_email(request):
 
 def confirm_email(request, user_id, hash):
     try:
-        email = Email.objects.get(user=user_id, validation_hash=hash)
+        email = UserEmail.objects.get(user=user_id, validation_hash=hash)
         if not email.hash_is_valid():
-            raise Email.DoesNotExist
-    except Email.DoesNotExist:
+            raise UserEmail.DoesNotExist
+    except UserEmail.DoesNotExist:
         if request.user.is_authenticated() and not request.user.has_unverified_emails():
             tpl = 'sentry/account/confirm_email/success.html'
         else:
@@ -160,9 +155,8 @@ def settings(request):
         old_email = request.user.email
         user = form.save()
         if user.email != old_email:
-            email = Email.objects.get(user=request.user, email=old_email)
-            email.delete()
-            send_confirm_emails(user)
+            UserEmail.objects.get(user=request.user, email=old_email).delete()
+            user.send_confirm_emails()
         messages.add_message(request, messages.SUCCESS, 'Your settings were saved.')
         return HttpResponseRedirect(request.path)
 
